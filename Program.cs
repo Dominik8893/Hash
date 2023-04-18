@@ -117,28 +117,43 @@ class HashTable
 
     }
 
-    int Hash(string Key)
+    int Hash(object Key)
     {
         int hashValue = 0; // Initialize the hash value to 0
-        char TempKey;
-        // Loop through each character in the key
-        for (int i = 0; i < Key.Length - 1; i++)
-        {
-            TempKey = Key[i]; // Get the current character
-            hashValue = (hashValue * 31 + TempKey); // Update the hash value using a constant multiplier (31) and adding the ASCII value of the character
 
+        if (Key == null)
+        {
+            return hashValue;
         }
+
+        string KeyString = Key.ToString(); // Convert the input key to a string
+
+        // Loop through each character in the key
+        for (int i = 0; i < KeyString.Length; i++)
+        {
+            char tempKey = KeyString[i]; // Get the current character
+            hashValue = (hashValue * 31) + tempKey.GetHashCode(); // Update the hash value using a constant multiplier (31) and the hash code of the character
+        }
+
         return hashValue; // Return the final hash value
     }
 
-    int SecondHash(string Key)
+    int SecondHash(object Key)
     {
         int hashValue = 0;
         int Prime = 31; // Prime Value used for hashing
         char TempKey;
-        for (int i = 0; i < Key.Length - 1; i++)
+
+        if (Key == null)
         {
-            TempKey = Key[i]; // Get the current character
+            return hashValue;
+        }
+
+        string keyString = Key.ToString();
+
+        for (int i = 0; i < keyString.Length - 1; i++)
+        {
+            TempKey = keyString[i]; // Get the current character
             hashValue = (hashValue * Prime + TempKey);
         }
         return hashValue; // Return the final hash value
@@ -154,54 +169,46 @@ class HashTable
         }
         else // If the bucket is not empty, resolve collision using double hashing
         {
-            int step = SecondHash(Key); // Compute the secondary hash step
+            int Step = SecondHash(Key); // Compute the secondary hash step
             int i = 1; // Initialize the step counter
 
             // Loop until an empty bucket is found
-            while (!MyHashTable[(index + i * step) % size].Equals(default(KeyValuePair<object, object>)))
+            while (!MyHashTable[(index + i * Step) % size].Equals(default(KeyValuePair<object, object>)))
             {
                 i = i + 1; // Move to the next step
             }
 
             // Store the key-value pair in the empty bucket
-            MyHashTable[(index + i * step) % size] = new KeyValuePair<object, object>(Key, Value);
+            MyHashTable[(index + i * Step) % size] = new KeyValuePair<object, object>(Key, Value);
         }
     }
 
-    public object GetKey(string Key)
+    public object GetKey(object Key)
     {
-        int Index=Hash(Key);
+        int Index = Hash(Key);
 
         if (!MyHashTable[Index].Equals(default(KeyValuePair<object, object>)))
         {
-            if (MyHashTable[Index].Key == Key)
+            if (MyHashTable[Index].Key.Equals(Key))
             {
                 return MyHashTable[Index].Value;
             }
+            else
+            {
+                int Step = SecondHash(Key);
+                int i = 1;
+
+                while (!MyHashTable[(Index + i * Step) % size].Equals(default(KeyValuePair<object, object>)))
+                {
+                    if (MyHashTable[(Index + i * Step) % size].Key.Equals(Key))
+                    {
+                        return MyHashTable[(Index + i * Step) % size].Value;
+                    }
+                    i++;
+                }
+                return null;
+            }
         }
-
-
-        //    index = hash(key) // Compute the primary hash
-
-        //    if table[index] is not empty:
-        //        if table[index].key is equal to key: // If the key matches
-        //        return table[index].value // Return the corresponding value
-        //        else: // If the key doesn't match, use double hashing to find the correct bucket
-        //            step = secondaryHash(key) // Compute the secondary hash step
-        //            i = 1 // Initialize the step counter
-
-        //            // Loop until the key is found or an empty bucket is encountered
-        //            while table[(index + i * step) % size] is not empty:
-        //                if table[(index + i * step) % size].key is equal to key: // If the key matches
-        //        return table[(index + i * step) % size].value // Return the corresponding value
-        //                i = i + 1 // Move to the next step
-        //            end while
-        //    }
-
-        //    return null // Key not found
-        //end function
-
-        return object;
+        return null;
     }
-
 }
